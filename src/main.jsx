@@ -414,6 +414,10 @@ function App() {
           </ResponsiveContainer>
         </div>
       </section>
+
+      <footer className="site-credit">
+        Made with love by Nayel, Vineel, Arhan, Sanjeev, and Pratham.
+      </footer>
     </main>
   );
 }
