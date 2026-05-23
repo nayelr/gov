@@ -299,12 +299,7 @@ function App() {
 
       <header className="hero">
         <div>
-          <p className="eyebrow">Interactive systems dynamics</p>
           <h1>The Paradox Threshold</h1>
-          <p className="hero-copy">
-            This AP Government artifact models democratic erosion: how anti-democratic actors can
-            spread through institutions when democratic norms are left undefended.
-          </p>
         </div>
         <div className="legend" aria-label="Node color legend">
           <span><i className="legend-blue" /> Democratic</span>
