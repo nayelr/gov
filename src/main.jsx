@@ -295,6 +295,8 @@ function App() {
 
   return (
     <main className="app-shell">
+      <p className="site-credit">Made with ❤️ by Nayel, Vineel, Arhan, Sanjeev, and Pratham.</p>
+
       <header className="hero">
         <div>
           <p className="eyebrow">Interactive systems dynamics</p>
@@ -417,9 +419,6 @@ function App() {
         </div>
       </section>
 
-      <footer className="site-credit">
-        Made with love by Nayel, Vineel, Arhan, Sanjeev, and Pratham.
-      </footer>
     </main>
   );
 }
