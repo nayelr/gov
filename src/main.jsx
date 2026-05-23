@@ -16,26 +16,26 @@ const INITIAL_AUTOCRATS = new Set([1, 13]);
 const MAX_STEPS = 18;
 
 const BASE_NODES = [
-  { id: 0, label: 'Assembly Chair', x: 13, y: 20, resistance: 0.34, extremism: 0.38 },
-  { id: 1, label: 'Hardline Bloc A', x: 28, y: 12, resistance: 0.12, extremism: 0.91 },
-  { id: 2, label: 'Courts', x: 47, y: 15, resistance: 0.54, extremism: 0.22 },
-  { id: 3, label: 'Civil Service', x: 65, y: 18, resistance: 0.46, extremism: 0.31 },
-  { id: 4, label: 'Media Board', x: 82, y: 24, resistance: 0.42, extremism: 0.43 },
-  { id: 5, label: 'Coalition Left', x: 20, y: 39, resistance: 0.28, extremism: 0.49 },
-  { id: 6, label: 'Budget Office', x: 39, y: 35, resistance: 0.39, extremism: 0.35 },
-  { id: 7, label: 'Election Agency', x: 56, y: 38, resistance: 0.58, extremism: 0.24 },
-  { id: 8, label: 'Security Panel', x: 75, y: 43, resistance: 0.26, extremism: 0.58 },
-  { id: 9, label: 'Regional Caucus', x: 90, y: 47, resistance: 0.31, extremism: 0.52 },
-  { id: 10, label: 'Labor Committee', x: 10, y: 61, resistance: 0.33, extremism: 0.41 },
-  { id: 11, label: 'Ethics Office', x: 29, y: 58, resistance: 0.51, extremism: 0.27 },
-  { id: 12, label: 'Upper Chamber', x: 47, y: 59, resistance: 0.45, extremism: 0.36 },
-  { id: 13, label: 'Hardline Bloc B', x: 66, y: 64, resistance: 0.14, extremism: 0.88 },
-  { id: 14, label: 'Police Oversight', x: 83, y: 67, resistance: 0.29, extremism: 0.57 },
-  { id: 15, label: 'Public Broadcaster', x: 18, y: 82, resistance: 0.37, extremism: 0.46 },
-  { id: 16, label: 'Municipal League', x: 36, y: 79, resistance: 0.43, extremism: 0.39 },
-  { id: 17, label: 'Constitutional Court', x: 55, y: 84, resistance: 0.64, extremism: 0.2 },
-  { id: 18, label: 'Interior Ministry', x: 73, y: 82, resistance: 0.32, extremism: 0.63 },
-  { id: 19, label: 'Independent Watchdog', x: 90, y: 86, resistance: 0.61, extremism: 0.25 },
+  { id: 0, label: 'Mutual Toleration', x: 13, y: 20 },
+  { id: 1, label: 'Anti-Democratic Bloc A', x: 28, y: 12 },
+  { id: 2, label: 'Independent Courts', x: 47, y: 15 },
+  { id: 3, label: 'Civil Service', x: 65, y: 18 },
+  { id: 4, label: 'Free Press', x: 82, y: 24 },
+  { id: 5, label: 'Institutional Forbearance', x: 20, y: 39 },
+  { id: 6, label: 'Congressional Norms', x: 39, y: 35 },
+  { id: 7, label: 'Election Administration', x: 56, y: 38 },
+  { id: 8, label: 'Security Agencies', x: 75, y: 43 },
+  { id: 9, label: 'Federalism', x: 90, y: 47 },
+  { id: 10, label: 'Civic Trust', x: 10, y: 61 },
+  { id: 11, label: 'Ethics Oversight', x: 29, y: 58 },
+  { id: 12, label: 'Checks and Balances', x: 47, y: 59 },
+  { id: 13, label: 'Anti-Democratic Bloc B', x: 66, y: 64 },
+  { id: 14, label: 'Rule of Law', x: 83, y: 67 },
+  { id: 15, label: 'Local Journalism', x: 18, y: 82 },
+  { id: 16, label: 'Civic Participation', x: 36, y: 79 },
+  { id: 17, label: 'Constitutional Limits', x: 55, y: 84 },
+  { id: 18, label: 'Executive Restraint', x: 73, y: 82 },
+  { id: 19, label: 'Independent Watchdogs', x: 90, y: 86 },
 ];
 
 const EDGES = [
@@ -109,14 +109,20 @@ const statusLabel = {
   isolated: 'Isolated by threshold',
 };
 
-function isConvertedByNeighbor(nodes, nodeId, spreadRate) {
+function chanceFor(step, fromId, toId) {
+  const value = Math.sin((step + 1) * 1000 + fromId * 37 + toId * 101) * 10000;
+  return value - Math.floor(value);
+}
+
+function isConvertedByNeighbor(nodes, nodeId, spreadRate, step) {
   return NEIGHBORS[nodeId].some(
     (neighborId) =>
-      nodes[neighborId].status === 'autocratic' && Math.random() < spreadRate,
+      nodes[neighborId].status === 'autocratic' &&
+      chanceFor(step, neighborId, nodeId) < spreadRate,
   );
 }
 
-function stepUnrestricted(nodes, spreadRate) {
+function stepUnrestricted(nodes, spreadRate, step) {
   let changed = false;
 
   const next = nodes.map((node) => {
@@ -124,7 +130,7 @@ function stepUnrestricted(nodes, spreadRate) {
       return node;
     }
 
-    if (isConvertedByNeighbor(nodes, node.id, spreadRate)) {
+    if (isConvertedByNeighbor(nodes, node.id, spreadRate, step)) {
       changed = true;
       return { ...node, status: 'autocratic' };
     }
@@ -135,7 +141,7 @@ function stepUnrestricted(nodes, spreadRate) {
   return { next, changed };
 }
 
-function stepMilitant(nodes, spreadRate, threshold) {
+function stepMilitant(nodes, spreadRate, threshold, step) {
   let changed = false;
 
   const next = nodes.map((node) => {
@@ -144,14 +150,14 @@ function stepMilitant(nodes, spreadRate, threshold) {
     }
 
     const becameAutocratic =
-      node.status === 'democratic' && isConvertedByNeighbor(nodes, node.id, spreadRate);
+      node.status === 'democratic' && isConvertedByNeighbor(nodes, node.id, spreadRate, step);
     const autocraticNode = becameAutocratic ? { ...node, status: 'autocratic' } : node;
 
     if (becameAutocratic) {
       changed = true;
     }
 
-    if (autocraticNode.status === 'autocratic' && Math.random() >= threshold) {
+    if (autocraticNode.status === 'autocratic' && chanceFor(step, node.id, node.id) >= threshold) {
       changed = true;
       return { ...autocraticNode, status: 'isolated' };
     }
@@ -247,8 +253,8 @@ function App() {
   }, []);
 
   const advanceSimulation = useCallback(() => {
-    const unrestrictedResult = stepUnrestricted(leftNetwork, spreadRate);
-    const militantResult = stepMilitant(rightNetwork, spreadRate, threshold);
+    const unrestrictedResult = stepUnrestricted(leftNetwork, spreadRate, step);
+    const militantResult = stepMilitant(rightNetwork, spreadRate, threshold, step);
     const nextStep = step + 1;
 
     setLeftNetwork(unrestrictedResult.next);
@@ -294,8 +300,8 @@ function App() {
           <p className="eyebrow">Interactive systems dynamics</p>
           <h1>The Paradox Threshold</h1>
           <p className="hero-copy">
-            Watch identical democratic networks face autocratic contagion. The left network tolerates
-            every actor; the right can isolate autocratic actors before they keep spreading.
+            This AP Government artifact models democratic erosion: how anti-democratic actors can
+            spread through institutions when democratic norms are left undefended.
           </p>
         </div>
         <div className="legend" aria-label="Node color legend">
@@ -304,6 +310,17 @@ function App() {
           <span><i className="legend-grey" /> Isolated</span>
         </div>
       </header>
+
+      <section className="explain">
+        <h2>What the model shows</h2>
+        <p>
+          The left network represents unrestricted tolerance. Red nodes keep using the system to
+          convert connected democratic institutions. The right network represents militant
+          democracy: once a node turns red, a defensive threshold can isolate it before it keeps
+          spreading. Lower thresholds mean earlier intervention; higher thresholds mean the system
+          waits longer and risks collapse.
+        </p>
+      </section>
 
       <section className="controls-panel" aria-label="Simulation controls">
         <div className="button-row">
@@ -321,6 +338,7 @@ function App() {
 
         <label className="slider-control">
           <span>Extremism Spread Rate: {(spreadRate * 100).toFixed(0)}%</span>
+          <small>Higher values make anti-democratic influence spread faster.</small>
           <input
             type="range"
             min="0.1"
@@ -333,6 +351,7 @@ function App() {
 
         <label className="slider-control">
           <span>Militant Threshold: {(threshold * 100).toFixed(0)}%</span>
+          <small>Lower values isolate red nodes earlier in the right network.</small>
           <input
             type="range"
             min="0.1"
@@ -354,12 +373,12 @@ function App() {
       <section className="networks-grid">
         <NetworkGraph
           title="Unrestricted Tolerance"
-          subtitle="Autocratic actors remain connected and keep trying to convert neighbors."
+          subtitle="No defensive guardrail: autocratic actors stay connected and keep spreading."
           nodes={leftNetwork}
         />
         <NetworkGraph
           title="Militant Democracy Threshold"
-          subtitle="Lower thresholds isolate autocratic actors earlier and limit the spread."
+          subtitle="Defensive guardrail: red nodes can be isolated before they capture neighbors."
           nodes={rightNetwork}
         />
       </section>
@@ -367,7 +386,10 @@ function App() {
       <section className="chart-card" aria-label="Democratic share over time">
         <div className="network-heading">
           <h2>Democratic Nodes Over Time</h2>
-          <p>Higher lines mean more institutions remain democratic.</p>
+          <p>
+            The blue line should survive better when the militant threshold is low, showing why
+            institutions need guardrails instead of unlimited tolerance.
+          </p>
         </div>
         <div className="chart-wrap">
           <ResponsiveContainer width="100%" height="100%">

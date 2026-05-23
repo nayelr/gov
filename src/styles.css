@@ -25,6 +25,7 @@ input {
 }
 
 .hero,
+.explain,
 .controls-panel,
 .stats-grid,
 .networks-grid,
@@ -33,6 +34,7 @@ input {
 }
 
 .hero-copy,
+.explain p,
 .network-heading p {
   max-width: 760px;
   line-height: 1.4;
@@ -80,6 +82,7 @@ input {
 }
 
 .controls-panel,
+.explain,
 .stat-pill,
 .network-card,
 .chart-card {
@@ -106,6 +109,10 @@ button:disabled {
 .slider-control {
   display: grid;
   gap: 6px;
+}
+
+.slider-control small {
+  color: #555;
 }
 
 input[type='range'] {
