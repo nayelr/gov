@@ -381,34 +381,23 @@ function App() {
         <div className="chart-wrap">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={history} margin={{ top: 16, right: 20, left: 0, bottom: 12 }}>
-              <CartesianGrid stroke="#263246" strokeDasharray="4 4" />
-              <XAxis dataKey="step" stroke="#93a4be" tickLine={false} label={{ value: 'Step', position: 'insideBottom', offset: -4, fill: '#93a4be' }} />
-              <YAxis stroke="#93a4be" tickLine={false} domain={[0, 100]} unit="%" />
-              <Tooltip
-                contentStyle={{
-                  background: '#101827',
-                  border: '1px solid #2d3a52',
-                  borderRadius: 12,
-                  color: '#e9f0ff',
-                }}
-              />
+              <CartesianGrid stroke="#ddd" />
+              <XAxis dataKey="step" label={{ value: 'Step', position: 'insideBottom', offset: -4 }} />
+              <YAxis domain={[0, 100]} unit="%" />
+              <Tooltip />
               <Line
                 type="monotone"
                 dataKey="unrestricted"
                 name="Unrestricted Tolerance"
-                stroke="#ff4d5a"
-                strokeWidth={3}
-                dot={{ r: 3 }}
-                animationDuration={450}
+                stroke="#d62728"
+                strokeWidth={2}
               />
               <Line
                 type="monotone"
                 dataKey="militant"
                 name="Militant Democracy Threshold"
-                stroke="#5da8ff"
-                strokeWidth={3}
-                dot={{ r: 3 }}
-                animationDuration={450}
+                stroke="#1f77b4"
+                strokeWidth={2}
               />
             </LineChart>
           </ResponsiveContainer>
