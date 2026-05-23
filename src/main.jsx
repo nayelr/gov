@@ -109,6 +109,13 @@ const statusLabel = {
   isolated: 'Isolated by threshold',
 };
 
+function isConvertedByNeighbor(nodes, nodeId, spreadRate) {
+  return NEIGHBORS[nodeId].some(
+    (neighborId) =>
+      nodes[neighborId].status === 'autocratic' && Math.random() < spreadRate,
+  );
+}
+
 function stepUnrestricted(nodes, spreadRate) {
   let changed = false;
 
@@ -117,11 +124,7 @@ function stepUnrestricted(nodes, spreadRate) {
       return node;
     }
 
-    const redPressure =
-      NEIGHBORS[node.id].filter((neighborId) => nodes[neighborId].status === 'autocratic').length /
-      NEIGHBORS[node.id].length;
-
-    if (redPressure * spreadRate >= node.resistance) {
+    if (isConvertedByNeighbor(nodes, node.id, spreadRate)) {
       changed = true;
       return { ...node, status: 'autocratic' };
     }
@@ -140,32 +143,20 @@ function stepMilitant(nodes, spreadRate, threshold) {
       return node;
     }
 
-    const activeRedNeighbors = NEIGHBORS[node.id].filter(
-      (neighborId) => nodes[neighborId].status === 'autocratic',
-    ).length;
-    const redPressure = activeRedNeighbors / NEIGHBORS[node.id].length;
-    const thresholdRisk = node.extremism * 0.72 + redPressure * spreadRate * 0.55;
+    const becameAutocratic =
+      node.status === 'democratic' && isConvertedByNeighbor(nodes, node.id, spreadRate);
+    const autocraticNode = becameAutocratic ? { ...node, status: 'autocratic' } : node;
 
-    if (node.status === 'autocratic' && thresholdRisk >= threshold) {
+    if (becameAutocratic) {
       changed = true;
-      return { ...node, status: 'isolated' };
     }
 
-    if (activeRedNeighbors > 0 && thresholdRisk >= threshold) {
+    if (autocraticNode.status === 'autocratic' && Math.random() >= threshold) {
       changed = true;
-      return { ...node, status: 'isolated' };
+      return { ...autocraticNode, status: 'isolated' };
     }
 
-    if (
-      node.status === 'democratic' &&
-      redPressure * spreadRate >= node.resistance &&
-      thresholdRisk < threshold
-    ) {
-      changed = true;
-      return { ...node, status: 'autocratic' };
-    }
-
-    return node;
+    return autocraticNode;
   });
 
   return { next, changed };
@@ -226,8 +217,8 @@ function StatPill({ label, value }) {
 function App() {
   const [leftNetwork, setLeftNetwork] = useState(createNetwork);
   const [rightNetwork, setRightNetwork] = useState(createNetwork);
-  const [spreadRate, setSpreadRate] = useState(0.78);
-  const [threshold, setThreshold] = useState(0.58);
+  const [spreadRate, setSpreadRate] = useState(0.6);
+  const [threshold, setThreshold] = useState(0.4);
   const [history, setHistory] = useState(() => [
     {
       step: 0,
@@ -272,7 +263,7 @@ function App() {
     ]);
     setStep(nextStep);
 
-    if (nextStep >= MAX_STEPS || (!unrestrictedResult.changed && !militantResult.changed)) {
+    if (nextStep >= MAX_STEPS) {
       setIsRunning(false);
     }
   }, [leftNetwork, rightNetwork, spreadRate, step, threshold]);
@@ -283,7 +274,7 @@ function App() {
       return;
     }
 
-    timerRef.current = setInterval(advanceSimulation, 850);
+    timerRef.current = setInterval(advanceSimulation, 1000);
     return () => clearInterval(timerRef.current);
   }, [advanceSimulation, isRunning]);
 
@@ -304,7 +295,7 @@ function App() {
           <h1>The Paradox Threshold</h1>
           <p className="hero-copy">
             Watch identical democratic networks face autocratic contagion. The left network tolerates
-            every actor; the right applies defensive isolation when extremism crosses a threshold.
+            every actor; the right can isolate autocratic actors before they keep spreading.
           </p>
         </div>
         <div className="legend" aria-label="Node color legend">
@@ -332,7 +323,7 @@ function App() {
           <span>Extremism Spread Rate: {(spreadRate * 100).toFixed(0)}%</span>
           <input
             type="range"
-            min="0.35"
+            min="0.1"
             max="1"
             step="0.01"
             value={spreadRate}
@@ -344,8 +335,8 @@ function App() {
           <span>Militant Threshold: {(threshold * 100).toFixed(0)}%</span>
           <input
             type="range"
-            min="0.32"
-            max="0.9"
+            min="0.1"
+            max="1"
             step="0.01"
             value={threshold}
             onChange={(event) => setThreshold(Number(event.target.value))}
@@ -363,12 +354,12 @@ function App() {
       <section className="networks-grid">
         <NetworkGraph
           title="Unrestricted Tolerance"
-          subtitle="Autocratic actors remain connected and keep converting neighbors."
+          subtitle="Autocratic actors remain connected and keep trying to convert neighbors."
           nodes={leftNetwork}
         />
         <NetworkGraph
           title="Militant Democracy Threshold"
-          subtitle="Exposed extremist actors are isolated before they can amplify contagion."
+          subtitle="Lower thresholds isolate autocratic actors earlier and limit the spread."
           nodes={rightNetwork}
         />
       </section>
