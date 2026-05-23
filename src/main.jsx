@@ -295,7 +295,10 @@ function App() {
 
   return (
     <main className="app-shell">
-      <p className="site-credit">Made with ❤️ by Nayel, Vineel, Arhan, Sanjeev, and Pratham.</p>
+      <p className="site-credit">
+        Made with ❤️ by Nayel, Vineel, Arhan, Sanjeev, and Pratham, with training from{' '}
+        <a href="https://tjsim.com">TJ Simulations Club</a>.
+      </p>
 
       <header className="hero">
         <div>
